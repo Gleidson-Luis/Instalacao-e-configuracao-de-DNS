@@ -61,6 +61,7 @@ zone "192.168.0.-in.addr.arpa" {
 }:
 ```
 Salvar
+
 10. Editar os arquivos DB (db.local e db.127) fazendo uma cópia para facilitar a configuranção
 ```
 $ sudo cp db.local db.ifrn.com
@@ -75,3 +76,83 @@ $ sudo nano db.ifrn.com
 0    IN    NS    ifrn.com
 0    IN    A     192.168.0.10
 ```
+Salvar
+
+13. Agora edita o "Reverso10"
+```
+$ sudo nano db.reverso10
+```
+14. Com o arquivo aberto, onde tem "localhost",, colocar "ifrn.com"
+```
+;BIND reverse data file for local loopback interface
+;
+;
+$TTL     604800
+@        IN        SOA        ifrn.com. root.ifrn.com. (
+                                    1        ; Serial
+                               604800        ; Refresh
+                                86400        ; Retry
+                              2419200        ; Expire
+                               604800 )      ; Negative Cache TTL
+;
+@        IN        NS        ifrn.com.
+10       IN        PTR       ifrn.com.
+```
+Salvar
+
+15. Agora ir no "resolv.conf"
+```
+$ sudo nano /etc/resolv.conf
+```
+16. Adiciona o Servidor
+```
+nameserver 192.168.10
+nameserver 127.0.0.53
+options edns0 trust-ad
+search .
+```
+Salvar e reiniciar
+```
+$ sudo  /etc/init.d/named restart
+```
+17. Pode verificar
+```
+$ nslookup ifrn.com
+```
+Irá retornar o IP que está responsável
+
+18. Abrir o navegador e colocar o site: ifrn.com.  Abrindo o site, esta tudo ok
+
+19. Para que seja possível acessar os outros sites criados. Dentro da zona direta
+```
+$ sudo nano db.ifrn.com
+```
+E nas linhas abaixo adiciona os site
+```
+site1        IN        A        192.168.0.10
+site2        IN        A        192.168.0.10
+```
+Salvar
+
+OBSERVAÇÃO IMPORTANTE: Tem que editar o arquivo .conf para indicar o domínio dele lá do Apache
+```
+$ cd /etc/apache2/sites-available/
+$ sudo nano site1.conf
+```
+Editar o final do arquivo
+```
+ServerAdmin admin@site1.ifrn.com
+ServerName site1.ifrn.com
+ServerAlias site1.ifrn.com
+```
+Salvar e fazer o mesmo para o "Site2"
+
+20. Dar um restar no Apache
+```
+$ sudo /etc/init.d/apache2 restart
+```
+21. Dar um restart no DNS
+```
+$ sudo /etc/init.d/named restart
+```
+22. Abrir o navegador e testar o "http://site1.ifrn.com" e o "http://site2.ifrn.com". Abrindo os sites a tarefa está concluida.
